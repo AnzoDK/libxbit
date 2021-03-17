@@ -3,6 +3,9 @@
 #include <math.h>
 typedef unsigned char uchar;
 typedef unsigned char byte;
+#ifdef WIN32
+typedef unsigned int uint;
+#endif
 class xBitInt
 {
 public:
