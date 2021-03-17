@@ -8,10 +8,16 @@ class xBitInt
 public:
     xBitInt();
     xBitInt(int initialValue);
-    //xBitInt(long long initialValue);
+    xBitInt(long initialValue);
     xBitInt(const xBitInt &xBit);
+    ~xBitInt()
+    {
+        //delete[] m_buffer;
+    }
     xBitInt operator* (const xBitInt mul);
     xBitInt operator* (int mul);
+    xBitInt operator+ (xBitInt add);
+    xBitInt operator+= (xBitInt add);
     std::string ToString();
     uchar ReadAt(uint64_t index){return m_buffer[index];}
     uint64_t GetLength(){return m_length;}
