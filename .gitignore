@@ -4,3 +4,5 @@
 buildWindows.sh
 winBat.bat
 *.exe
+CppCheck-cppcheck-build-dir/*
+CppCheck.cppcheck
