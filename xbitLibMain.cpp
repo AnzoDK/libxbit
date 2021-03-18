@@ -8,6 +8,7 @@
 //Contructors
 xBitInt::xBitInt()
 {
+    m_buffer = 0x0;
     Init(0);
 }
 xBitInt::xBitInt(const xBitInt& xBit)
@@ -20,13 +21,18 @@ xBitInt::xBitInt(const xBitInt& xBit)
         m_buffer[i] = xBit.m_buffer[i];
     }
 }
-xBitInt::xBitInt(int initialValue)
+/*xBitInt::xBitInt(int initialValue)
 {
     Init(initialValue);
-}
+}*/
 xBitInt::xBitInt(long initialValue)
 {
+    m_buffer = 0x0;
     Init(initialValue);
+}
+xBitInt::xBitInt(const std::string &strNr) //WHY AM I CODING THIS AGAIN?????
+{
+    m_buffer = 0x0;
 }
 
 //Functions
@@ -51,7 +57,7 @@ bool xBitInt::BufferWrite(uint64_t offset, uint64_t bytesToWrite, byte* buffer) 
     for(uint64_t i = 0; i < bytesToWrite; i++)
     {
         m_buffer[offset+i] = buffer[/*bytesToWrite-i-1*/i];
-        std::cout << "Wrote '" << std::to_string(buffer[i/*bytesToWrite-i-1*/]) << "' to index: " << std::to_string(offset+i) << std::endl;
+        //std::cout << "Wrote '" << std::to_string(buffer[i/*bytesToWrite-i-1*/]) << "' to index: " << std::to_string(offset+i) << std::endl;
     }
     return 1;
 }
@@ -94,7 +100,7 @@ std::string xBitInt::ToString()
             //tmp = (tmp | m_buffer[((i*m_cpuSize)+m_cpuSize)-u]) << (u == m_cpuSize-1 ? 0: 8);
             ((byte*)&tmp)[u] = m_buffer[(i*m_cpuSize)+u];
             //std::cout << "tmp Index: " << std::to_string(u) << " -> bufferIndex: " << std::to_string((i*m_cpuSize)+(m_cpuSize > m_length ? m_length : m_cpuSize)-1-u) << std::endl;
-            std::cout << "tmp Index: " << std::to_string(u) << " -> bufferIndex: " << std::to_string((i*m_cpuSize)+u) << std::endl;
+            //std::cout << "tmp Index: " << std::to_string(u) << " -> bufferIndex: " << std::to_string((i*m_cpuSize)+u) << std::endl;
 
         }
         out+=std::to_string(tmp);
@@ -123,9 +129,21 @@ std::string xBitInt::GetDebugInfo()
 }
 
 //Operators
-xBitInt xBitInt::operator+(xBitInt xBit)
+xBitInt& xBitInt::operator=(xBitInt const& xBit)
+{
+    m_length = xBit.m_length;
+    m_cpuSize = xBit.m_cpuSize;
+    m_buffer = new byte[m_length];
+    for(uint64_t i = 0; i < m_length;i++)
+    {
+        m_buffer[i] = xBit.m_buffer[i];
+    }
+    return *this;
+}
+xBitInt xBitInt::operator+(const xBitInt &xBitX)
 {
     xBitInt tmpBit = xBitInt(*this);
+    xBitInt xBit = xBitInt(xBitX);
     //uint64_t tmpLength = (xBit.m_length < this->m_length ? xBit.m_length : this->m_length);
     byte carry = 0;
     for(uint64_t i = 0; i < tmpBit.m_length;i++)
@@ -135,17 +153,12 @@ xBitInt xBitInt::operator+(xBitInt xBit)
             tmpBit.m_Resize(1);
         }
         uint64_t c = 0;
-        if(carry != 0) //debug
-        {
-            std::cout << "Carry detected - Starting Carry resolve loop!" << std::endl;
-        }
         while(carry != 0)
         {
-            std::cout << "Carry resolve loop - Iteration " << c << std::endl;
             if((int)tmpBit.m_buffer[i+c]+carry > 255)
             {
                 tmpBit.m_buffer[i+c]= 0x0;
-                carry = ((int)tmpBit.m_buffer[i+c]+carry)-255;
+                carry = ((int)tmpBit.m_buffer[i+c]+carry)-256;
             }
             else
             {
@@ -157,8 +170,8 @@ xBitInt xBitInt::operator+(xBitInt xBit)
         uint t = tmpBit.m_buffer[i] + xBit.m_buffer[i];
         if(t > 255)
         {
-            carry = t-255;
-            tmpBit.m_buffer[i] = 0x0;
+            carry = 1;
+            tmpBit.m_buffer[i] = t-256;
         }
         else
         {
@@ -168,21 +181,87 @@ xBitInt xBitInt::operator+(xBitInt xBit)
     }
     return tmpBit;
 }
-xBitInt xBitInt::operator+=(xBitInt xBit)
+xBitInt xBitInt::operator-(const xBitInt &xBit)
 {
-    *this = *this+xBit;
-    return *this;
-}
-xBitInt xBitInt::operator*(const xBitInt mul)
-{
-    for(int i = 0; i < 0; i++)
+    xBitInt tmpBit = xBitInt(*this);
+    //uint64_t tmpLength = (xBit.m_length < this->m_length ? xBit.m_length : this->m_length);
+    byte carry = 0;
+    for(uint64_t i = tmpBit.m_length; i >= 0 ;i--)
     {
+        if(carry != 0 && i == (uint64_t)18446744073709551615)
+        {
+            carry = 0; //Unsigned so no negative numbers
+            tmpBit = xBitInt(0);
+        }
+        if(i == (uint64_t)18446744073709551615)
+        {
+            break;
+        }
+        uint64_t c = 0;
+        while(carry != 0)
+        {
+            if((int)tmpBit.m_buffer[i-c]-carry < 0)
+            {
+                tmpBit.m_buffer[i-c]+= 255-carry;
+                carry = 1;
+            }
+            else
+            {
+                tmpBit.m_buffer[i-c]-=carry;
+                carry = 0;
+            }
+            c++;
+        }
+        int t = static_cast<int>(tmpBit.m_buffer[i]) - static_cast<int>(xBit.m_buffer[i]);
+        if(t < 0)
+        {
+            carry = 1;
+            tmpBit.m_buffer[i] = (uint)(tmpBit.m_buffer[i]+255) - xBit.m_buffer[i];
+        }
+        else
+        {
+            tmpBit.m_buffer[i]-=xBit.m_buffer[i];
+        }
 
     }
+    return tmpBit;
+}
+xBitInt xBitInt::operator-=(const xBitInt &xBit)
+{
+    *this = *this-xBit;
+    return *this;
+}
+xBitInt xBitInt::operator--(int sub)
+{
+    if(sub == 0)
+    {
+        sub = 1;
+    }
+    *this = *this-xBitInt(sub);
+    return *this;
+}
+xBitInt xBitInt::operator+=(const xBitInt &xBit)
+{
+    *this = *this + xBit;
+    return *this;
+}
+xBitInt xBitInt::operator*(const xBitInt &mulX)
+{
+    
+    xBitInt* tmpX = new xBitInt(*this);
+    xBitInt mul = xBitInt(mulX);
+    std::cout << "Mul = " << mul.ToString() << std::endl;
+    while(mul.ToString() != "0")
+    {
+        *tmpX+=*tmpX;
+        mul--;
+        std::cout << "Mul = " << mul.ToString() << std::endl;
+    }
+    return *tmpX;
 }
 xBitInt xBitInt::operator*(int mul)
 {
-    size_t cpu_max = (sizeof(size_t) == 8 ? 0xFFFFFFFFFFFFFFFF : 0xFFFFFFFF); //Use of size_t is meant to not be slower on 32bit systems I guess
+    //size_t cpu_max = (sizeof(size_t) == 8 ? 0xFFFFFFFFFFFFFFFF : 0xFFFFFFFF); //Use of size_t is meant to not be slower on 32bit systems I guess
     xBitInt tmpX = xBitInt(*this);
     //Let's just check for a shortcut
     if(mul == 2)
@@ -237,9 +316,12 @@ xBitInt xBitInt::operator*(int mul)
         }
     }*/
     xBitInt ttmpX = xBitInt(tmpX);
-    for(int i = 0; i < mul; i++)
+    uint64_t* ttmpX_address = (uint64_t*)&ttmpX; //debug
+    uint64_t* tmpX_address = (uint64_t*)&tmpX; //debug
+    for(int i = 0; i < mul-1; i++)
     {
         tmpX+=ttmpX;
+        //std::cout << "tmpX: " << tmpX.ToString() << std::endl;
     }
     return tmpX;
 }

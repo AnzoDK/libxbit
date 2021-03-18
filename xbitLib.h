@@ -10,17 +10,23 @@ class xBitInt
 {
 public:
     xBitInt();
-    xBitInt(int initialValue);
+    //xBitInt(int initialValue);
     xBitInt(long initialValue);
     xBitInt(const xBitInt &xBit);
+    xBitInt(const std::string &strNr); //This is so fucking cursed - please, this is something stupid enough to be reserved for Java
     ~xBitInt()
     {
-        //delete[] m_buffer;
+        delete[] m_buffer;
     }
-    xBitInt operator* (const xBitInt mul);
+    xBitInt& operator= (xBitInt const& xBit);
+    xBitInt operator* (const xBitInt &mul);
     xBitInt operator* (int mul);
-    xBitInt operator+ (xBitInt add);
-    xBitInt operator+= (xBitInt add);
+    xBitInt operator+ (const xBitInt &add);
+    xBitInt operator+= (const xBitInt &add);
+    xBitInt operator- (const xBitInt &sub);
+    xBitInt operator-= (const xBitInt &sub);
+    xBitInt operator-- (int sub);
+
     std::string ToString();
     uchar ReadAt(uint64_t index){return m_buffer[index];}
     uint64_t GetLength(){return m_length;}
@@ -32,7 +38,7 @@ private:
     bool BufferWrite(uint64_t offset, uint64_t bytesToWrite, uchar* buffer);
     void m_Resize(int64_t change);
     uchar* m_buffer;
-    uint64_t m_length;
+    uint64_t m_length = 0;
     int m_cpuSize = 0;
 };
 

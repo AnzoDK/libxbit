@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<results version="2">
+    <cppcheck version="2.3"/>
+    <errors>
+        <error id="useInitializationList" severity="performance" msg="Variable &amp;#039;m_errorMsg&amp;#039; is assigned in constructor body. Consider performing initialization in initialization list." verbose="When an object of a class is created, the constructors of all member variables are called consecutively in the order the variables are declared, even if you don&amp;#039;t explicitly write them to the initialization list. You could avoid assigning &amp;#039;m_errorMsg&amp;#039; a value by passing the value to the constructor in the initialization list." cwe="398" hash="15515787480407374271" sinceDate="18/03/2021">
+            <location file0="testProgram.cpp" file="xbitLib.h" line="49"/>
+        </error>
+        <error id="noExplicitConstructor" severity="style" msg="Class &amp;#039;xBitInt&amp;#039; has a constructor with 1 argument that is not explicit." verbose="Class &amp;#039;xBitInt&amp;#039; has a constructor with 1 argument that is not explicit. Such constructors should in general be explicit for type safety reasons. Using the explicit keyword in the constructor means some mistakes when using the class can be avoided." cwe="398" hash="4372641836260839504" sinceDate="18/03/2021">
+            <location file0="testProgram.cpp" file="xbitLib.h" line="14"/>
+        </error>
+        <error id="noExplicitConstructor" severity="style" msg="Class &amp;#039;xBitInt&amp;#039; has a constructor with 1 argument that is not explicit." verbose="Class &amp;#039;xBitInt&amp;#039; has a constructor with 1 argument that is not explicit. Such constructors should in general be explicit for type safety reasons. Using the explicit keyword in the constructor means some mistakes when using the class can be avoided." cwe="398" hash="6400976217604606244" sinceDate="18/03/2021">
+            <location file0="testProgram.cpp" file="xbitLib.h" line="16"/>
+        </error>
+        <error id="noExplicitConstructor" severity="style" msg="Class &amp;#039;ExpectedOverflowException&amp;#039; has a constructor with 1 argument that is not explicit." verbose="Class &amp;#039;ExpectedOverflowException&amp;#039; has a constructor with 1 argument that is not explicit. Such constructors should in general be explicit for type safety reasons. Using the explicit keyword in the constructor means some mistakes when using the class can be avoided." cwe="398" hash="4276364135831696189" sinceDate="18/03/2021">
+            <location file0="testProgram.cpp" file="xbitLib.h" line="47"/>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &amp;#039;xBit_address&amp;#039; is assigned a value that is never used." verbose="Variable &amp;#039;xBit_address&amp;#039; is assigned a value that is never used." cwe="563" hash="13569022290718923638" sinceDate="18/03/2021">
+            <location file="testProgram.cpp" line="10"/>
+        </error>
+        <error id="objectIndex" severity="warning" msg="The address of local variable &amp;#039;tmp&amp;#039; might be accessed at non-zero index." verbose="The address of local variable &amp;#039;tmp&amp;#039; might be accessed at non-zero index." cwe="758" hash="13905943610370050855" sinceDate="18/03/2021">
+            <location file="xbitLibMain.cpp" line="101" info=""/>
+            <location file="xbitLibMain.cpp" line="101" info="Address of variable taken here."/>
+        </error>
+        <error id="oppositeInnerCondition" severity="warning" msg="Opposite inner &amp;#039;if&amp;#039; condition leads to a dead code block." verbose="Opposite inner &amp;#039;if&amp;#039; condition leads to a dead code block (outer condition is &amp;#039;i&amp;gt;=0&amp;#039; and inner condition is &amp;#039;i==(uint64_t)18446744073709551615&amp;#039;)." cwe="398" hash="9409895675602984936" sinceDate="18/03/2021">
+            <location file="xbitLibMain.cpp" line="185" info="opposite inner condition: i==(uint64_t)18446744073709551615"/>
+            <location file="xbitLibMain.cpp" line="178" info="outer condition: i&amp;gt;=0"/>
+        </error>
+        <error id="unsignedPositive" severity="style" msg="Unsigned expression &amp;#039;i&amp;#039; can&amp;#039;t be negative so it is unnecessary to test it." verbose="Unsigned expression &amp;#039;i&amp;#039; can&amp;#039;t be negative so it is unnecessary to test it." cwe="570" hash="13956574093002068181" sinceDate="18/03/2021">
+            <location file="xbitLibMain.cpp" line="178"/>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &amp;#039;prev&amp;#039; is assigned a value that is never used." verbose="Variable &amp;#039;prev&amp;#039; is assigned a value that is never used." cwe="563" hash="760804302942083954" sinceDate="18/03/2021">
+            <location file="xbitLibMain.cpp" line="257"/>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &amp;#039;ttmpX_address&amp;#039; is assigned a value that is never used." verbose="Variable &amp;#039;ttmpX_address&amp;#039; is assigned a value that is never used." cwe="563" hash="4293457906938007783" sinceDate="18/03/2021">
+            <location file="xbitLibMain.cpp" line="305"/>
+        </error>
+        <error id="unreadVariable" severity="style" msg="Variable &amp;#039;tmpX_address&amp;#039; is assigned a value that is never used." verbose="Variable &amp;#039;tmpX_address&amp;#039; is assigned a value that is never used." cwe="563" hash="9734785389962530268" sinceDate="18/03/2021">
+            <location file="xbitLibMain.cpp" line="306"/>
+        </error>
+        <error id="postfixOperator" severity="performance" msg="Prefer prefix ++/-- operators for non-primitive types." verbose="Prefix ++/-- operators should be preferred for non-primitive types. Pre-increment/decrement can be more efficient than post-increment/decrement. Post-increment/decrement usually involves keeping a copy of the previous value around and adds a little extra code." cwe="398" hash="3421667456894334783" sinceDate="18/03/2021">
+            <location file="xbitLibMain.cpp" line="244"/>
+        </error>
+    </errors>
+</results>
