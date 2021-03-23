@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <math.h>
+#include <vector>
 typedef unsigned char uchar;
 typedef unsigned char byte;
 #ifdef WIN32
@@ -12,6 +13,7 @@ public:
     xBitInt();
     //xBitInt(int initialValue);
     xBitInt(long initialValue);
+    xBitInt(byte* byteArr, uint64_t byteArrLen);
     xBitInt(const xBitInt &xBit);
     xBitInt(const std::string &strNr); //This is so fucking cursed - please, this is something stupid enough to be reserved for Java
     ~xBitInt()
@@ -26,16 +28,20 @@ public:
     xBitInt operator- (const xBitInt &sub);
     xBitInt operator-= (const xBitInt &sub);
     xBitInt operator-- (int sub);
+    xBitInt operator>> (int lsr);
+    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
+    xBitInt operator<< (T lsl);
 
     std::string ToString();
     uchar ReadAt(uint64_t index){return m_buffer[index];}
     uint64_t GetLength(){return m_length;}
+    uint64_t GetBitLength(){return m_length*8;}
     std::string GetDebugInfo();
 
 private:
     template<typename T>
     void Init(T initialValue);
-    bool BufferWrite(uint64_t offset, uint64_t bytesToWrite, uchar* buffer);
+    bool BufferWrite(uint64_t offset, uint64_t bytesToWrite, uchar* buffer, bool allowResize=false);
     void m_Resize(int64_t change);
     uchar* m_buffer;
     uint64_t m_length = 0;

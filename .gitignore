@@ -1,6 +1,5 @@
 *.so
 *.out
-.vscode/*
 buildWindows.sh
 winBat.bat
 *.exe

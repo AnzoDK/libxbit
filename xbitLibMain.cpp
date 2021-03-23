@@ -21,6 +21,15 @@ xBitInt::xBitInt(const xBitInt& xBit)
         m_buffer[i] = xBit.m_buffer[i];
     }
 }
+xBitInt::xBitInt(byte* byteArr, uint64_t byteArrLen)
+{
+    m_length = byteArrLen;
+    Init(0);
+    if(!BufferWrite(0,byteArrLen,byteArr,1))
+    {
+        throw ExpectedOverflowException("Internal Write Attempts to write out of bounds");
+    }
+}
 /*xBitInt::xBitInt(int initialValue)
 {
     Init(initialValue);
@@ -48,11 +57,19 @@ void xBitInt::Init(T initialValue)
         throw ExpectedOverflowException("Internal Write Attempts to write out of bounds");
     }
 }
-bool xBitInt::BufferWrite(uint64_t offset, uint64_t bytesToWrite, byte* buffer) //Assume buffer is little-endian
+bool xBitInt::BufferWrite(uint64_t offset, uint64_t bytesToWrite, byte* buffer, bool allowResize) //Assume buffer is little-endian
 {
     if(bytesToWrite+offset > m_length)
     {
-        return 0;
+        if(allowResize)
+        {
+            m_Resize(bytesToWrite+offset);
+        }
+        else
+        {
+            return 0;
+        }
+        
     }
     for(uint64_t i = 0; i < bytesToWrite; i++)
     {
@@ -63,6 +80,7 @@ bool xBitInt::BufferWrite(uint64_t offset, uint64_t bytesToWrite, byte* buffer) 
 }
 void xBitInt::m_Resize(int64_t change)
 {
+    std::cout << "Resize from: " << std::to_string(m_length) << " to " << std::to_string(m_length+change) << std::endl;
     if(change < 0)
     {
         if((int64_t)sqrt((change*change)) > m_length)
@@ -186,37 +204,34 @@ xBitInt xBitInt::operator-(const xBitInt &xBit)
     xBitInt tmpBit = xBitInt(*this);
     //uint64_t tmpLength = (xBit.m_length < this->m_length ? xBit.m_length : this->m_length);
     byte carry = 0;
-    for(uint64_t i = tmpBit.m_length; i >= 0 ;i--)
+    for(uint64_t i = 0; i < tmpBit.m_length ;i++)
     {
-        if(carry != 0 && i == (uint64_t)18446744073709551615)
+        if(carry != 0 && i == tmpBit.m_length-1)
         {
             carry = 0; //Unsigned so no negative numbers
             tmpBit = xBitInt(0);
         }
-        if(i == (uint64_t)18446744073709551615)
-        {
-            break;
-        }
         uint64_t c = 0;
         while(carry != 0)
         {
-            if((int)tmpBit.m_buffer[i-c]-carry < 0)
+            if((int)tmpBit.m_buffer[i+c]-carry < 0)
             {
-                tmpBit.m_buffer[i-c]+= 255-carry;
+                tmpBit.m_buffer[i-c]+=256-carry;
                 carry = 1;
             }
             else
             {
-                tmpBit.m_buffer[i-c]-=carry;
+                tmpBit.m_buffer[i+c]-=carry;
                 carry = 0;
             }
             c++;
         }
         int t = static_cast<int>(tmpBit.m_buffer[i]) - static_cast<int>(xBit.m_buffer[i]);
+        //std::cout << std::to_string(tmpBit.m_buffer[i]) << "-" << std::to_string(xBit.m_buffer[i]) << std::endl;
         if(t < 0)
         {
             carry = 1;
-            tmpBit.m_buffer[i] = (uint)(tmpBit.m_buffer[i]+255) - xBit.m_buffer[i];
+            tmpBit.m_buffer[i] = (uint)(tmpBit.m_buffer[i]+256) - xBit.m_buffer[i];
         }
         else
         {
@@ -245,19 +260,173 @@ xBitInt xBitInt::operator+=(const xBitInt &xBit)
     *this = *this + xBit;
     return *this;
 }
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
+xBitInt xBitInt::operator<<(T lsl)
+{
+    xBitInt tmp = xBitInt(*this);
+    uint64_t oldStart = tmp.m_length;
+    byte carry = 0;
+    tmp.m_Resize(ceil(lsl/8));
+    if(lsl%8 == 0)
+    {
+        //Locate the first in-use byte
+        uint64_t start = 0xFFFFFFFFFFFFFFFF;
+        for(uint64_t i = 0; i < tmp.m_length; i++)
+        {
+            if(tmp.m_buffer[tmp.m_length-1-i] != 0)
+            {
+                start = tmp.m_length-1-i;
+                break;
+            }
+        }
+        if(start == 0xFFFFFFFFFFFFFFFF)
+        {
+            //I'm too scared to start doing processing on 0x0 giant int O_O
+            return tmp;
+        }
+        for(uint64_t i = 0; i < start+1; i++)
+        {
+            tmp.m_buffer[start+static_cast<uint64_t>(lsl/8)-i] = tmp.m_buffer[start-i]; 
+        }
+        for(uint64_t i = 0; i < static_cast<uint64_t>(lsl/8); i++)
+        {
+            //tmp.m_buffer[start-static_cast<uint64_t>(lsl/8)+i] = 0x0;
+            tmp.m_buffer[i] = 0x0;
+        }
+    }
+    else if(lsl < 8)
+    {
+        byte nCarry = 0;
+        byte comp = 0;
+        for(int i = 0; i < lsl; i++)
+        {
+            comp = (comp << 1) | 1;
+        }
+        comp = comp << 8-lsl;
+        for(uint64_t i = 0; i < tmp.m_length; i++)
+        {
+            if(carry)
+            {
+                if((tmp.m_buffer[i] & comp) != 0)
+                {
+                    nCarry = (tmp.m_buffer[i] & comp);
+                }
+                tmp.m_buffer[i] = (tmp.m_buffer[i] << lsl) | carry;
+                carry = nCarry;
+            }
+            else
+            {
+                if((tmp.m_buffer[i] & comp) != 0)
+                {
+                    carry = (tmp.m_buffer[i] & comp) >> 8-lsl;
+                }
+                tmp.m_buffer[i] = (tmp.m_buffer[i] << lsl);
+            }
+        }
+        /*for(uint64_t i = 0; i < floor(lsl/8); i++)
+        {
+            tmp.m_buffer[i] = 0x0;
+        }*/
+    }
+    else
+    {
+
+        byte comp = 0;
+        for(int i = 0; i < lsl%8; i++)
+        {
+            comp = (comp << 1) | 1;
+        }
+        comp = comp << 8-lsl%8;
+
+        for(uint64_t i = 0; i < tmp.m_length; i++)
+        {
+            byte nCarry = 0;
+            if(carry)
+            {
+                if((tmp.m_buffer[i] & comp) != 0)
+                {
+                    nCarry = (tmp.m_buffer[i] & comp) >> 8-lsl%8;
+                }
+                tmp.m_buffer[i] = (tmp.m_buffer[i] << lsl%8) | carry;
+                carry = nCarry;
+            }
+            else
+            {
+                if((tmp.m_buffer[i] & comp) != 0)
+                {
+                    carry = (tmp.m_buffer[i] & comp) >> 8-lsl%8;
+                }
+                tmp.m_buffer[i] = (tmp.m_buffer[i] << lsl%8);
+            }
+        }
+        //Locate the first in-use byte
+        uint64_t start = 0xFFFFFFFFFFFFFFFF;
+        for(uint64_t i = 0; i < tmp.m_length; i++)
+        {
+            if(tmp.m_buffer[tmp.m_length-1-i] != 0)
+            {
+                start = tmp.m_length-1-i;
+                break;
+            }
+        }
+        if(start == 0xFFFFFFFFFFFFFFFF)
+        {
+            return tmp;
+        }
+        for(uint64_t i = 0; i < start+1; i++)
+        {
+            tmp.m_buffer[start+static_cast<uint64_t>(floor(lsl/8))-i] = tmp.m_buffer[start-i]; 
+        }
+        for(uint64_t i = 0; i < floor(lsl/8); i++)
+        {
+            tmp.m_buffer[i] = 0x0;
+        }
+
+    }
+    return tmp;
+    
+}
 xBitInt xBitInt::operator*(const xBitInt &mulX)
 {
     
-    xBitInt* tmpX = new xBitInt(*this);
+    xBitInt tmpX = xBitInt(*this);
+
+    xBitInt ttmpX = xBitInt(tmpX);
     xBitInt mul = xBitInt(mulX);
+    uint64_t len = mul.GetBitLength();
     std::cout << "Mul = " << mul.ToString() << std::endl;
-    while(mul.ToString() != "0")
+    /*while(mul.ToString() != "1")
     {
-        *tmpX+=*tmpX;
+        tmpX+=ttmpX;
         mul--;
-        std::cout << "Mul = " << mul.ToString() << std::endl;
+        //std::cout << "Mul = " << mul.ToString() << std::endl;
+    }*/
+    uint64_t c = 0;
+    //uint64_t byteC = 0;
+    xBitInt temp = xBitInt(0);
+    for(uint64_t i = 0; i < ttmpX.m_length; i++)
+    {
+        ///std::vector<uint16_t> addBytes = std::vector<uint16_t>();
+        //byte workByte = ttmpX.m_buffer[i];
+        byte compare = 0b00000001;
+        for(uint64_t byteC = 0; byteC < mul.m_length; byteC++)
+        {
+            c = 0;
+            compare = 0b00000001;
+
+            for(int z = 0; z < 8; z++)
+            {
+                if((compare & mul.m_buffer[byteC]) != 0)
+                {
+                    temp+=(tmpX << (byteC*8)+z);
+                }
+            }
+            //byteC++;
+            //byte carry = 0;
+        }
     }
-    return *tmpX;
+   
+    return temp;
 }
 xBitInt xBitInt::operator*(int mul)
 {
