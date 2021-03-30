@@ -103,6 +103,14 @@ void xBitInt::m_Resize(int64_t change)
     delete[] m_buffer;
     m_buffer = tmpB;
 }
+std::string xBitInt::m_UcharToHex(uchar u)
+{
+
+    std::stringstream stream;
+    stream << std::hex << (uint)u;
+    std::string result( stream.str() );
+    return result;
+}
 std::string xBitInt::ToString()
 {
     std::string out = "";
@@ -136,6 +144,9 @@ std::string xBitInt::GetDebugInfo()
     for(uint64_t i = 0; i < m_length; i++)
     {
         out+= std::string("[") + std::to_string(i) + std::string("]: ") + std::to_string(m_buffer[i]);
+        out += " (0x";
+        out += m_UcharToHex(m_buffer[i]);
+        out += ")";
         if(i != m_length-1)
         {
             out+=",";
@@ -402,29 +413,28 @@ xBitInt xBitInt::operator*(const xBitInt &mulX)
         //std::cout << "Mul = " << mul.ToString() << std::endl;
     }*/
     uint64_t c = 0;
-    //uint64_t byteC = 0;
     xBitInt temp = xBitInt(0);
-    for(uint64_t i = 0; i < ttmpX.m_length; i++)
-    {
-        ///std::vector<uint16_t> addBytes = std::vector<uint16_t>();
-        //byte workByte = ttmpX.m_buffer[i];
-        byte compare = 0b00000001;
+    //for(uint64_t i = 0; i < ttmpX.m_length; i++)
+    //{
         for(uint64_t byteC = 0; byteC < mul.m_length; byteC++)
         {
+            xBitInt xx = xBitInt(tmpX);
             c = 0;
-            compare = 0b00000001;
+            byte compare = 0b00000001;
 
             for(int z = 0; z < 8; z++)
             {
                 if((compare & mul.m_buffer[byteC]) != 0)
                 {
-                    temp+=(tmpX << (byteC*8)+z);
+                    temp+=xx << (byteC*8)+z;
                 }
+                compare = compare << 1;
+                uint64_t push = (byteC*8)+z;
+                std::cout << temp.GetDebugInfo() << std::endl;
+                
             }
-            //byteC++;
-            //byte carry = 0;
         }
-    }
+    //}
    
     return temp;
 }
@@ -493,4 +503,9 @@ xBitInt xBitInt::operator*(int mul)
         //std::cout << "tmpX: " << tmpX.ToString() << std::endl;
     }
     return tmpX;
+}
+xBitInt xBitInt::operator*=(xBitInt &mulX)
+{
+    *this = *this*mulX;
+    return *this;
 }
