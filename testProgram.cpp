@@ -3,8 +3,8 @@
 #include <chrono>
 int main()
 {
-    long out = 5000;
-    long in = 400000;
+    long out = 100;
+    long in = 40000;
     auto start = std::chrono::high_resolution_clock::now();
     xBitInt xBit = xBitInt(in);
     xBitInt xOut = xBitInt(out);
@@ -15,14 +15,14 @@ int main()
     std::cout << xOut.ToString() << std::endl;
     std::cout << xOut.GetDebugInfo() << std::endl;
 
-    //xBit = xBit << out;
-
+    //xBit = (xBit << static_cast<uint64_t>(out));
+    
     //xBit = xBit*2;
     //xBit+=xBitInt(out);
     //xBit = xBit + xBitInt((int)490000);
-    uint64_t* xBit_address = (uint64_t*)&xBit;
-
+    //xBit = xBit << static_cast<uint64_t>(2);
     xBit*=xOut;
+    //xBit = xBit * xBitInt(100);
 
     std::cout << xBit.ToString() << std::endl;
     std::cout << xBit.GetDebugInfo() << std::endl;

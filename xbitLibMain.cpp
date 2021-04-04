@@ -313,23 +313,24 @@ xBitInt xBitInt::operator<<(T lsl)
         {
             comp = (comp << 1) | 1;
         }
-        comp = comp << 8-lsl;
+        comp = comp << (8-lsl);
         for(uint64_t i = 0; i < tmp.m_length; i++)
         {
             if(carry)
             {
                 if((tmp.m_buffer[i] & comp) != 0)
                 {
-                    nCarry = (tmp.m_buffer[i] & comp);
+                    nCarry = (tmp.m_buffer[i] & comp) >> (8-lsl);
                 }
                 tmp.m_buffer[i] = (tmp.m_buffer[i] << lsl) | carry;
                 carry = nCarry;
+                nCarry = 0;
             }
             else
             {
                 if((tmp.m_buffer[i] & comp) != 0)
                 {
-                    carry = (tmp.m_buffer[i] & comp) >> 8-lsl;
+                    carry = (tmp.m_buffer[i] & comp) >> (8-lsl);
                 }
                 tmp.m_buffer[i] = (tmp.m_buffer[i] << lsl);
             }
@@ -347,7 +348,7 @@ xBitInt xBitInt::operator<<(T lsl)
         {
             comp = (comp << 1) | 1;
         }
-        comp = comp << 8-lsl%8;
+        comp = comp << (8-(lsl%8));
 
         for(uint64_t i = 0; i < tmp.m_length; i++)
         {
@@ -356,18 +357,19 @@ xBitInt xBitInt::operator<<(T lsl)
             {
                 if((tmp.m_buffer[i] & comp) != 0)
                 {
-                    nCarry = (tmp.m_buffer[i] & comp) >> 8-lsl%8;
+                    nCarry = (tmp.m_buffer[i] & comp) >> (8-(lsl%8));
                 }
-                tmp.m_buffer[i] = (tmp.m_buffer[i] << lsl%8) | carry;
+                tmp.m_buffer[i] = (tmp.m_buffer[i] << (lsl%8)) | carry;
                 carry = nCarry;
+                nCarry = 0;
             }
             else
             {
                 if((tmp.m_buffer[i] & comp) != 0)
                 {
-                    carry = (tmp.m_buffer[i] & comp) >> 8-lsl%8;
+                    carry = (tmp.m_buffer[i] & comp) >> (8-(lsl%8));
                 }
-                tmp.m_buffer[i] = (tmp.m_buffer[i] << lsl%8);
+                tmp.m_buffer[i] = (tmp.m_buffer[i] << (lsl%8));
             }
         }
         //Locate the first in-use byte
@@ -414,23 +416,28 @@ xBitInt xBitInt::operator*(const xBitInt &mulX)
     }*/
     uint64_t c = 0;
     xBitInt temp = xBitInt(0);
+    uint64_t push = 0;
     //for(uint64_t i = 0; i < ttmpX.m_length; i++)
     //{
         for(uint64_t byteC = 0; byteC < mul.m_length; byteC++)
         {
             xBitInt xx = xBitInt(tmpX);
-            c = 0;
             byte compare = 0b00000001;
 
             for(int z = 0; z < 8; z++)
             {
                 if((compare & mul.m_buffer[byteC]) != 0)
                 {
-                    temp+=xx << (byteC*8)+z;
+                    push = (byteC*8)+z;
+                    std::cout << "using push force " << std::to_string(push) << std::endl;
+                    xBitInt tmpXX = xBitInt(xx);
+                    tmpXX = tmpXX << static_cast<uint64_t>((byteC*8)+z);
+                    temp+=tmpXX;
+                    std::cout << "xx represents: " << tmpXX.GetDebugInfo() << std::endl;
                 }
                 compare = compare << 1;
-                uint64_t push = (byteC*8)+z;
-                std::cout << temp.GetDebugInfo() << std::endl;
+                
+                //std::cout << temp.GetDebugInfo() << std::endl;
                 
             }
         }
@@ -440,7 +447,6 @@ xBitInt xBitInt::operator*(const xBitInt &mulX)
 }
 xBitInt xBitInt::operator*(int mul)
 {
-    //size_t cpu_max = (sizeof(size_t) == 8 ? 0xFFFFFFFFFFFFFFFF : 0xFFFFFFFF); //Use of size_t is meant to not be slower on 32bit systems I guess
     xBitInt tmpX = xBitInt(*this);
     //Let's just check for a shortcut
     if(mul == 2)
