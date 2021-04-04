@@ -429,11 +429,9 @@ xBitInt xBitInt::operator*(const xBitInt &mulX)
                 if((compare & mul.m_buffer[byteC]) != 0)
                 {
                     push = (byteC*8)+z;
-                    std::cout << "using push force " << std::to_string(push) << std::endl;
                     xBitInt tmpXX = xBitInt(xx);
-                    tmpXX = tmpXX << static_cast<uint64_t>((byteC*8)+z);
+                    tmpXX = tmpXX << static_cast<uint64_t>((byteC*8)+z); //It's not really necessary to do this but whatever
                     temp+=tmpXX;
-                    std::cout << "xx represents: " << tmpXX.GetDebugInfo() << std::endl;
                 }
                 compare = compare << 1;
                 
