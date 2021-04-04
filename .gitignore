@@ -5,3 +5,5 @@ winBat.bat
 *.exe
 CppCheck-cppcheck-build-dir/*
 CppCheck.cppcheck
+*.log
+*.kdev4
