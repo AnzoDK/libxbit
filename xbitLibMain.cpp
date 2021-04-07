@@ -108,12 +108,17 @@ std::string xBitInt::m_UcharToHex(uchar u)
 
     std::stringstream stream;
     stream << std::hex << (uint)u;
-    std::string result( stream.str() );
+    std::string result(stream.str());
     return result;
 }
 std::string xBitInt::ToString()
 {
-    std::string out = "";
+    //TODO fix this (print a decimal string) //TEMP just calls ToHexString()
+    return ToHexString();
+
+
+
+    /*std::string out = "";
     for(uint64_t i = 0; i < m_length;i+=m_cpuSize)
     {
         size_t tmp = 0;
@@ -130,6 +135,35 @@ std::string xBitInt::ToString()
 
         }
         out+=std::to_string(tmp);
+    }*/
+    /*byte carry = 0;
+    for(uint64_t i = 0; i < m_length;i++)
+    {
+        byte tmp = (m_buffer[i] & 0b00001111);
+        if(tmp > 9)
+        {
+            tmp = tmp-10;
+            carry = 1;
+        }
+        out = std::to_string(tmp) + out;
+        byte tmp = (m_buffer[i] & 0b11110000);
+        if(carry)
+        {
+
+        }
+        else
+        {
+
+        }
+    }*/
+    //return out;
+}
+std::string xBitInt::ToHexString()
+{
+    std::string out = "0x";
+    for(uint64_t i = 0; i < m_length; i++)
+    {
+        out += m_UcharToHex(m_buffer[i]);
     }
     return out;
 }
@@ -430,7 +464,7 @@ xBitInt xBitInt::operator*(const xBitInt &mulX)
                 {
                     push = (byteC*8)+z;
                     xBitInt tmpXX = xBitInt(xx);
-                    tmpXX = tmpXX << static_cast<uint64_t>((byteC*8)+z); //It's not really necessary to do this but whatever
+                    tmpXX = (tmpXX << static_cast<uint64_t>((byteC*8)+z)); //It's not really necessary to do this but whatever
                     temp+=tmpXX;
                 }
                 compare = compare << 1;

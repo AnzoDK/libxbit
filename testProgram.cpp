@@ -3,8 +3,8 @@
 #include <chrono>
 int main()
 {
-    long out = 100;
-    long in = 40000;
+    long out = 11313131300;
+    long in = 40131313000;
     auto start = std::chrono::high_resolution_clock::now();
     xBitInt xBit = xBitInt(in);
     xBitInt xOut = xBitInt(out);

@@ -35,6 +35,7 @@ public:
     xBitInt operator<< (T lsl);
 
     std::string ToString();
+    std::string ToHexString();
 
     uchar ReadAt(uint64_t index){return m_buffer[index];}
     uint64_t GetLength(){return m_length;}
