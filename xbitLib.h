@@ -30,9 +30,12 @@ public:
     xBitInt operator- (const xBitInt &sub);
     xBitInt operator-= (const xBitInt &sub);
     xBitInt operator-- (int sub);
-    xBitInt operator>> (int lsr);
+    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
+    xBitInt operator>> (T lsr);
     template <typename T, typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
     xBitInt operator<< (T lsl);
+    bool operator>(const xBitInt &less);
+    bool operator<(const xBitInt &great);
 
     std::string ToString();
     std::string ToHexString();
@@ -48,6 +51,7 @@ private:
     bool BufferWrite(uint64_t offset, uint64_t bytesToWrite, uchar* buffer, bool allowResize=false);
     std::string m_UcharToHex(uchar u);
     void m_Resize(int64_t change);
+    uint64_t m_GetActiveIndex();
     uchar* m_buffer;
     uint64_t m_length = 0;
     int m_cpuSize = 0;
@@ -57,6 +61,20 @@ class ExpectedOverflowException : public std::exception
 {
 public:
     ExpectedOverflowException(const std::string &errorMsg) noexcept
+    {
+        m_errorMsg = errorMsg;
+    }
+    virtual const char* what() const noexcept override
+    {
+        return m_errorMsg.c_str();
+    }
+private:
+    std::string m_errorMsg = "";
+};
+class xBitInternalException : public std::exception
+{
+public:
+    xBitInternalException(const std::string &errorMsg) noexcept
     {
         m_errorMsg = errorMsg;
     }

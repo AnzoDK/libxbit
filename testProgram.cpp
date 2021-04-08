@@ -21,7 +21,8 @@ int main()
     //xBit+=xBitInt(out);
     //xBit = xBit + xBitInt((int)490000);
     //xBit = xBit << static_cast<uint64_t>(2);
-    xBit*=xOut;
+    //xBit*=xOut;
+    std::cout << (xOut > xBit) << std::endl;
     //xBit = xBit * xBitInt(100);
 
     std::cout << xBit.ToString() << std::endl;

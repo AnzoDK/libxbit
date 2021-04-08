@@ -167,6 +167,27 @@ std::string xBitInt::ToHexString()
     }
     return out;
 }
+uint64_t xBitInt::m_GetActiveIndex()
+{
+    if(ToHexString() == "0")
+    {
+        return 0;
+    }
+    for(uint64_t i = 0; i < m_length; i++)
+    {
+        if(m_buffer[m_length-1-i] != 0x0)
+        {
+            return static_cast<uint64_t>(m_length-1-i);
+        }
+    }
+    uint64_t addr = (uint64_t)this;
+    std::stringstream stream;
+    stream << std::hex << addr;
+    std::string address(stream.str());
+    std::string error = "ActiveIndex Lookup Failed on object: 0x";
+    error += address;
+    throw xBitInternalException(error.c_str());
+}
 //Debug functions
 std::string xBitInt::GetDebugInfo()
 {
@@ -546,4 +567,58 @@ xBitInt xBitInt::operator*=(xBitInt &mulX)
 {
     *this = *this*mulX;
     return *this;
+}
+bool xBitInt::operator>(const xBitInt &less)
+{
+    xBitInt tmpX = xBitInt(*this);
+    xBitInt tmpLess = xBitInt(less);
+    uint64_t tmpXactive = 0;
+    uint64_t lessActive = 0;
+    try
+    {
+        tmpXactive = tmpX.m_GetActiveIndex();
+        lessActive = tmpLess.m_GetActiveIndex();
+    }
+    catch(xBitInternalException e)
+    {
+        std::cout << "Error on operator '>' with error: " << e.what() << std::endl;
+        std::cout << "Avoiding crash by returning false" << std::endl;
+        return false; 
+    }
+    if(tmpXactive > lessActive)
+    {
+        return true;
+    }
+    if(tmpXactive == lessActive)
+    {
+        return tmpX.m_buffer[tmpXactive] > tmpLess.m_buffer[lessActive];
+    }
+    return false;
+}
+bool xBitInt::operator<(const xBitInt &great)
+{
+    xBitInt tmpX = xBitInt(*this);
+    xBitInt tmpGreat = xBitInt(great);
+    uint64_t tmpXactive = 0;
+    uint64_t greatActive = 0;
+    try
+    {
+        tmpXactive = tmpX.m_GetActiveIndex();
+        greatActive = tmpGreat.m_GetActiveIndex();
+    }
+    catch(xBitInternalException e)
+    {
+        std::cout << "Error on operator '<' with error: " << e.what() << std::endl;
+        std::cout << "Avoiding crash by returning false" << std::endl;
+        return false; 
+    }
+    if(tmpXactive < greatActive)
+    {
+        return true;
+    }
+    if(tmpXactive == greatActive)
+    {
+        return tmpX.m_buffer[tmpXactive] < tmpGreat.m_buffer[greatActive];
+    }
+    return false;
 }
